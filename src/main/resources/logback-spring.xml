@@ -1,0 +1,85 @@
+<configuration>
+
+    <appender name="CONSOLE" class="ch.qos.logback.core.ConsoleAppender">
+        <encoder>
+            <pattern>%d{yyyy-MM-dd HH:mm:ss} %-5level [%thread] %logger{36} - %msg%n</pattern>
+        </encoder>
+    </appender>
+
+    <appender name="SPLUNK_SYNC" class="com.splunk.logging.HttpEventCollectorLogbackAppender">
+
+        <!-- HEC Endpoint: Obtain from environment variable -->
+        <url>${SPLUNK_HEC_URL}</url>
+        <token>${SPLUNK_HEC_TOKEN}</token>
+
+        <source>${spring.application.name}</source>
+        <sourcetype>springboot</sourcetype>
+        <index>main</index>
+
+        <!-- disable duplicate MDC fields in Splunk because the Splunk Logback appender automatically injects MDC fields into event.properties -->
+        <exemptMdcKeyPattern>.*</exemptMdcKeyPattern>
+        <mdc>false</mdc>
+        <includeMdc>false</includeMdc>
+
+        <!-- every 5 seconds -->
+        <batch_size_count>50</batch_size_count>
+        <batch_interval>5000</batch_interval>
+
+        <!-- ignore SSL issues for now, like curl -k -->
+        <disableCertificateValidation>true</disableCertificateValidation>
+
+        <!-- 🚫 Filter: only INFO and above go to Splunk -->
+        <filter class="ch.qos.logback.classic.filter.ThresholdFilter">
+            <level>INFO</level>
+        </filter>
+
+        <!-- Key=Value style so Splunk can parse fields easily -->
+        <layout class="ch.qos.logback.classic.PatternLayout">
+            <pattern>
+                ts=%d{yyyy-MM-dd'T'HH:mm:ss.SSSZ}
+                level=%-5level
+                logger=%logger{36}
+                thread=%thread
+                correlationId=%X{correlationId}
+                userId=%X{userId}
+                path=%X{path}
+                method=%X{method}
+                msg=%msg%n
+            </pattern>
+        </layout>
+    </appender>
+
+    <!-- ========= Wrap Splunk in an async appender:
+        Application threads are never blocked by Splunk network HTTP POST calls.========= -->
+    <appender name="SPLUNK" class="ch.qos.logback.classic.AsyncAppender">
+        <appender-ref ref="SPLUNK_SYNC" />
+        <queueSize>1024</queueSize>
+        <discardingThreshold>10</discardingThreshold>
+        <includeCallerData>false</includeCallerData>
+    </appender>
+
+    <!--Everything under com.ibank.notification will log INFO and above (INFO, WARN, ERROR). -->
+    <logger name="com.ibank.notification" level="INFO" />
+
+    <!-- Cut down framework noise:
+        All logs → only WARN and ERROR should appear.
+        additivity="false" prevents logs from bubbling up to the root logger.
+    -->
+    <logger name="org.springframework" level="WARN" additivity="false"/>
+    <logger name="com.zaxxer.hikari" level="WARN" additivity="false"/>
+    <logger name="org.hibernate" level="WARN" additivity="false"/>
+    <logger name="org.apache" level="WARN" additivity="false"/>
+    <logger name="org.flywaydb" level="WARN" additivity="false"/>
+    <logger name="com.splunk.logging" level="WARN"/>
+
+    <!-- ROOT should be WARN or INFO (never DEBUG)
+        Root logger applies to everything unless overridden by a more specific logger.
+        ANY log message (INFO, WARN, ERROR) from ANY package not explicitly configured will go to appenders.
+        Note: Set ROOT to WARN if you want even less noise (PROD)
+    -->
+    <root level="WARN">
+        <appender-ref ref="CONSOLE"/>
+        <appender-ref ref="SPLUNK"/>
+    </root>
+
+</configuration>

@@ -11,22 +11,22 @@ import java.util.UUID;
 import java.util.concurrent.atomic.AtomicInteger;
 
 @RestController
-@RequestMapping("/api/notification")
+@RequestMapping
 @Slf4j
 public class NotificationController {
 
     private static final AtomicInteger counter = new AtomicInteger();
 
-    @GetMapping("/")
-    public Map<String, Object> hello() {
+    @GetMapping("/server")
+    public Map<String, Object> getServerDetails() {
 
         int counterValue = counter.incrementAndGet();
         String correlationId = UUID.randomUUID().toString();
         MDC.put("correlationId", correlationId);
-        log.info("Processing GET:/api/notification...");
+        log.info("Processing GET:/api/v1/notification/server...");
 
         return Map.of(
-                "message", "Processing GET:/api/notification...",
+                "message", "Processing GET:/api/v1/notification/server...",
                 "timestamp", Instant.now().toString(),
                 "counter", counterValue
         );

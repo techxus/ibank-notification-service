@@ -26,7 +26,7 @@ public class NotificationController {
         log.info("Processing GET:/api/v1/notification/server...");
 
         return Map.of(
-                "message", "Processing GET:/api/v1/notification/server...",
+                "message", "Brick Pre-Tools Setup Milestone Reached !!!",
                 "timestamp", Instant.now().toString(),
                 "counter", counterValue
         );

@@ -2,7 +2,8 @@ name: notification-service -> local (feature branch)
 
 on:
   push:
-    branches: ["develop"]
+    branches:
+      - "feature/**"
 
 concurrency:
   group: notification-service-local

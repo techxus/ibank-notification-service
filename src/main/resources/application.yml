@@ -11,7 +11,7 @@ management:
   endpoints:
     web:
       exposure:
-        include: health,info,prometheus
+        include: health,info,prometheus,flyway,env
   endpoint:
     health:
       probes:
@@ -32,6 +32,8 @@ management:
       enabled: true
     readinessState:
       enabled: true
+  server:
+    port: ${server.port}
 
 logging:
   pattern:

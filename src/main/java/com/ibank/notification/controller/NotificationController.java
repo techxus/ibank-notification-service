@@ -26,7 +26,7 @@ public class NotificationController {
         log.info("Processing GET:/api/v1/notification/server...");
 
         return Map.of(
-                "message", "Brick AWS Policy Setup Milestone Reached !!!",
+                "message", "Brick AWS EKS + Github Actions Setup Milestone Reached !!!",
                 "timestamp", Instant.now().toString(),
                 "counter", counterValue
         );
